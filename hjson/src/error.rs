@@ -8,6 +8,7 @@ use std::fmt;
 use std::io;
 use std::result;
 use std::string::FromUtf8Error;
+use std::num::ParseIntError;
 
 use serde::de;
 use serde::ser;
@@ -113,6 +114,9 @@ pub enum Error {
 
     /// Some UTF8 error occurred while serializing or deserializing a value.
     FromUtf8(FromUtf8Error),
+
+    /// Some error occurred while deserializing a number.
+    ParseIntError(ParseIntError),
 }
 
 impl error::Error for Error {
@@ -122,6 +126,7 @@ impl error::Error for Error {
             Error::Syntax(..) => "syntax error",
             Error::Io(ref error) => error.description(),
             Error::FromUtf8(ref error) => error.description(),
+            Error::ParseIntError(ref error) => error.description(),
         }
     }
 
@@ -129,6 +134,7 @@ impl error::Error for Error {
         match *self {
             Error::Io(ref error) => Some(error),
             Error::FromUtf8(ref error) => Some(error),
+            Error::ParseIntError(ref error) => Some(error),
             _ => None,
         }
     }
@@ -142,6 +148,7 @@ impl fmt::Display for Error {
             }
             Error::Io(ref error) => fmt::Display::fmt(error, fmt),
             Error::FromUtf8(ref error) => fmt::Display::fmt(error, fmt),
+            Error::ParseIntError(ref error) => fmt::Display::fmt(error, fmt),
         }
     }
 }
@@ -155,6 +162,43 @@ impl From<io::Error> for Error {
 impl From<FromUtf8Error> for Error {
     fn from(error: FromUtf8Error) -> Error {
         Error::FromUtf8(error)
+    }
+}
+
+impl From<de::value::Error> for Error {
+    fn from(error: de::value::Error) -> Error {
+        match error {
+            de::value::Error::Custom(e) => {
+                Error::Syntax(ErrorCode::Custom(e), 0, 0)
+            }
+            de::value::Error::EndOfStream => {
+                de::Error::end_of_stream()
+            }
+            de::value::Error::InvalidType(ty) => {
+                Error::Syntax(ErrorCode::InvalidType(ty), 0, 0)
+            }
+            de::value::Error::InvalidValue(msg) => {
+                Error::Syntax(ErrorCode::InvalidValue(msg), 0, 0)
+            }
+            de::value::Error::InvalidLength(len) => {
+                Error::Syntax(ErrorCode::InvalidLength(len), 0, 0)
+            }
+            de::value::Error::UnknownVariant(variant) => {
+                Error::Syntax(ErrorCode::UnknownVariant(variant), 0, 0)
+            }
+            de::value::Error::UnknownField(field) => {
+                Error::Syntax(ErrorCode::UnknownField(field), 0, 0)
+            }
+            de::value::Error::MissingField(field) => {
+                Error::Syntax(ErrorCode::MissingField(field), 0, 0)
+            }
+        }
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(error: ParseIntError) -> Error {
+        Error::ParseIntError(error)
     }
 }
 

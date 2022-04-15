@@ -815,3 +815,21 @@ where
 {
     from_slice(s.as_bytes())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use Value;
+
+    #[test]
+    fn out_of_bound_negative_numbers_dont_cause_crashes() {
+        let value = "[-9223372036854775809]".to_string();
+        let _ = from_str::<Value>(&value);
+    }
+
+    #[test]
+    fn out_of_bound_positive_numbers_dont_cause_crashes() {
+        let value = "[18446744073709551616]".to_string();
+        let _ = from_str::<Value>(&value);
+    }
+}
