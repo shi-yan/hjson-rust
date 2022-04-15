@@ -165,37 +165,6 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
-impl From<de::value::Error> for Error {
-    fn from(error: de::value::Error) -> Error {
-        match error {
-            de::value::Error::Custom(e) => {
-                Error::Syntax(ErrorCode::Custom(e), 0, 0)
-            }
-            de::value::Error::EndOfStream => {
-                de::Error::end_of_stream()
-            }
-            de::value::Error::InvalidType(ty) => {
-                Error::Syntax(ErrorCode::InvalidType(ty), 0, 0)
-            }
-            de::value::Error::InvalidValue(msg) => {
-                Error::Syntax(ErrorCode::InvalidValue(msg), 0, 0)
-            }
-            de::value::Error::InvalidLength(len) => {
-                Error::Syntax(ErrorCode::InvalidLength(len), 0, 0)
-            }
-            de::value::Error::UnknownVariant(variant) => {
-                Error::Syntax(ErrorCode::UnknownVariant(variant), 0, 0)
-            }
-            de::value::Error::UnknownField(field) => {
-                Error::Syntax(ErrorCode::UnknownField(field), 0, 0)
-            }
-            de::value::Error::MissingField(field) => {
-                Error::Syntax(ErrorCode::MissingField(field), 0, 0)
-            }
-        }
-    }
-}
-
 impl From<ParseIntError> for Error {
     fn from(error: ParseIntError) -> Error {
         Error::ParseIntError(error)
